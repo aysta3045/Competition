@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "competition",
 	"version": "${version}",
-	"name": "Competition",
+	"name": "competition",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
 		"Me!"
@@ -18,12 +18,19 @@
 		"main": [
 			"aysta3045.Competition"
 		],
+		"client": [
+			"aysta3045.CompetitionClient"
+		],
 		"fabric-datagen": [
 			"aysta3045.CompetitionDataGenerator"
 		]
 	},
 	"mixins": [
-		"competition.mixins.json"
+		"competition.mixins.json",
+		{
+			"config": "competition.client.mixins.json",
+			"environment": "client"
+		}
 	],
 	"depends": {
 		"fabricloader": ">=0.18.4",
