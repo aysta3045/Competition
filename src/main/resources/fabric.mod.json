@@ -1,17 +1,16 @@
 {
-	"schemaVersion": 1,
+	"schemaVersion": "1.0.0-beta",
 	"id": "competition",
 	"version": "${version}",
 	"name": "competition",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A mod for competition",
 	"authors": [
-		"Me!"
+		"Aysta3045"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/Aysta3045/Competition"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT license",
 	"icon": "assets/competition/icon.png",
 	"environment": "*",
 	"entrypoints": {
