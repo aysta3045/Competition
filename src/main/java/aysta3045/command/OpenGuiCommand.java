@@ -31,7 +31,7 @@ public class OpenGuiCommand {
         // 打开 GUI
         player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
                 (syncId, inventory, playerEntity) -> new CompetitionScreenHandler(syncId, inventory),
-                Text.literal("比赛管理界面")  // 直接使用文本，避免翻译问题
+                Text.literal("比赛管理界面")
         ));
 
         return 1;

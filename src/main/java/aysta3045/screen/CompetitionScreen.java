@@ -9,7 +9,7 @@ import net.minecraft.util.Identifier;
 public class CompetitionScreen extends HandledScreen<CompetitionScreenHandler> {
     // 使用原版箱子纹理
     private static final Identifier TEXTURE =
-            Identifier.of("minecraft", "textures/gui/container/chest.png");
+            Identifier.of("minecraft", "textures/gui/container/shulker_box.png");
 
     public CompetitionScreen(CompetitionScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
