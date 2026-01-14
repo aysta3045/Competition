@@ -18,6 +18,9 @@
 		"main": [
 			"aysta3045.Competition"
 		],
+		"client": [
+			"aysta3045.CompetitionClient"
+		],
 		"fabric-datagen": [
 			"aysta3045.CompetitionDataGenerator"
 		]
