@@ -2,6 +2,7 @@ package aysta3045;
 
 import aysta3045.command.OpenGuiCommand;
 import aysta3045.screen.CompetitionScreenHandler;
+import aysta3045.screen.CompetitionManagementScreenHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.registry.Registries;
@@ -14,15 +15,22 @@ import org.slf4j.LoggerFactory;
 
 public class Competition implements ModInitializer {
 	public static final String MOD_ID = "competition";
-
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	// 注册屏幕处理器
+	// 注册第一个GUI的屏幕处理器（原来的比赛GUI）
 	public static final ScreenHandlerType<CompetitionScreenHandler> COMPETITION_SCREEN_HANDLER =
 			Registry.register(
 					Registries.SCREEN_HANDLER,
 					Identifier.of(MOD_ID, "competition_gui"),
 					new ScreenHandlerType<>(CompetitionScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
+			);
+
+	// 注册第二个GUI的屏幕处理器（比赛管理GUI）
+	public static final ScreenHandlerType<CompetitionManagementScreenHandler> COMPETITION_MANAGEMENT_SCREEN_HANDLER =
+			Registry.register(
+					Registries.SCREEN_HANDLER,
+					Identifier.of(MOD_ID, "competition_management_gui"),
+					new ScreenHandlerType<>(CompetitionManagementScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
 			);
 
 	@Override
@@ -35,5 +43,6 @@ public class Competition implements ModInitializer {
 		});
 
 		LOGGER.info("Competition GUI command registered!");
+		LOGGER.info("Successfully registered Competition GUI and Management GUI!");
 	}
 }
