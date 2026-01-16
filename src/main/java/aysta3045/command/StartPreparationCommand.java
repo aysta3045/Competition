@@ -42,7 +42,7 @@ public class StartPreparationCommand {
                 // 1. 设置为旁观者模式
                 target.changeGameMode(GameMode.SPECTATOR);
 
-                // 2. 传送到指定位置 (0, 100, 0) - 修复传送方法
+                // 2. 传送到指定位置 (0, 100, 0)
                 target.teleport(
                         target.getServerWorld(),
                         0, 100, 0,
