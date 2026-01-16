@@ -33,7 +33,7 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         // 创建生鸡肉物品堆栈并设置自定义名称
         this.chickenStack = Items.CHICKEN.getDefaultStack();
         this.chickenStack.set(DataComponentTypes.CUSTOM_NAME,
-                Text.literal("准备阶段-关闭权限").styled(style -> style.withColor(0xFF5555)));
+                Text.literal("关闭权限").styled(style -> style.withColor(0xFF5555)));
     }
 
     @Override
@@ -122,7 +122,7 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
                         mouseX, mouseY);
             } else {
                 context.drawTooltip(this.textRenderer,
-                        Text.literal("§c左键点击：关闭除自己外所有玩家的指令权限\n§7§o需要管理员权限(OP)\n§7§o冷却时间: 2秒"),
+                        Text.literal("§c左键点击：准备阶段-关闭其他玩家权限"),
                         mouseX, mouseY);
             }
         }

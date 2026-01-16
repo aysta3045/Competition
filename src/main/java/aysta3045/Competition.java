@@ -36,7 +36,6 @@ public class Competition implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Hello Fabric world!");
 
 		// 注册命令
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
@@ -44,8 +43,7 @@ public class Competition implements ModInitializer {
 			CloseCommandsCommand.register(dispatcher); // 注册关闭命令权限的命令
 		});
 
-		LOGGER.info("Competition GUI command registered!");
-		LOGGER.info("Close commands command registered!");
-		LOGGER.info("Successfully registered Competition GUI and Management GUI!");
+		LOGGER.info("Competition command registered!");
+		LOGGER.info("Successfully registered Competition GUI");
 	}
 }
