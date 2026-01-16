@@ -1,6 +1,7 @@
 package aysta3045;
 
 import aysta3045.command.OpenGuiCommand;
+import aysta3045.command.CloseCommandsCommand; // 添加导入
 import aysta3045.screen.CompetitionScreenHandler;
 import aysta3045.screen.CompetitionManagementScreenHandler;
 import net.fabricmc.api.ModInitializer;
@@ -40,9 +41,11 @@ public class Competition implements ModInitializer {
 		// 注册命令
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			OpenGuiCommand.register(dispatcher);
+			CloseCommandsCommand.register(dispatcher); // 注册关闭命令权限的命令
 		});
 
 		LOGGER.info("Competition GUI command registered!");
+		LOGGER.info("Close commands command registered!");
 		LOGGER.info("Successfully registered Competition GUI and Management GUI!");
 	}
 }

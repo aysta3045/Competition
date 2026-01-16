@@ -38,8 +38,6 @@ dependencies {
 	// Fabric API
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	// Fabric Network API
-	modImplementation "net.fabricmc.fabric-api:fabric-networking-api-v1:1.2.19"
 }
 
 processResources {
