@@ -1,5 +1,6 @@
 package aysta3045;
 
+import aysta3045.command.CommandBlocker;
 import aysta3045.command.OpenGuiCommand;
 import aysta3045.command.CloseCommandsCommand; // 添加导入
 import aysta3045.command.StartPreparationCommand;
@@ -45,6 +46,11 @@ public class Competition implements ModInitializer {
 			StartPreparationCommand.register(dispatcher);
 		});
 
+		// 初始化命令拦截器
+		CommandBlocker.initialize();
+
+
+		LOGGER.info("AYSTA3045 权限控制系统已加载完成");
 		LOGGER.info("Competition command registered!");
 		LOGGER.info("Successfully registered Competition GUI");
 	}
