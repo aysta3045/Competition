@@ -14,6 +14,7 @@ public class OpenGuiCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("competition")
                 .then(CommandManager.literal("gui")
+                        .requires(source -> source.hasPermissionLevel(2)) // 需要OP权限(等级2)
                         .executes(OpenGuiCommand::openGui)
                 )
         );
