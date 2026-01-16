@@ -33,7 +33,7 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         // 创建生鸡肉物品堆栈并设置自定义名称
         this.chickenStack = Items.CHICKEN.getDefaultStack();
         this.chickenStack.set(DataComponentTypes.CUSTOM_NAME,
-                Text.literal("关闭指令权限").styled(style -> style.withColor(0xFF5555)));
+                Text.literal("准备阶段-关闭权限").styled(style -> style.withColor(0xFF5555)));
     }
 
     @Override
@@ -176,8 +176,6 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
                 // 更新最后点击时间
                 lastClickTime = System.currentTimeMillis();
 
-                // 关闭GUI
-                this.client.setScreen(null);
             }
             return true;
         }
