@@ -157,11 +157,25 @@ public class StartPreparationCommand {
                     Text.literal("§a已成功将以下玩家设为准备状态：§e" + playersList.toString())
             );
 
+            // 启动倒计时（默认3小时30分钟）
+            source.sendMessage(
+                    Text.literal("§a正在启动倒计时（3小时30分钟）...")
+            );
+
+            // 执行倒计时命令
+            source.getServer().getCommandManager().executeWithPrefix(
+                    source,
+                    "competition countdown 12600"
+            );
+
             // 广播消息
             for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
                 player.sendMessage(
                         Text.literal("§6管理员 " + sender.getName().getString() +
                                 " 启动了比赛准备阶段")
+                );
+                player.sendMessage(
+                        Text.literal("§6比赛倒计时已开始，剩余时间: §e3小时30分钟")
                 );
             }
 

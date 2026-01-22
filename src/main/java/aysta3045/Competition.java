@@ -2,12 +2,14 @@ package aysta3045;
 
 import aysta3045.command.CommandBlocker;
 import aysta3045.command.OpenGuiCommand;
-import aysta3045.command.CloseCommandsCommand; // 添加导入
+import aysta3045.command.CloseCommandsCommand;
 import aysta3045.command.StartPreparationCommand;
+import aysta3045.command.CountdownCommand; // 添加导入
 import aysta3045.screen.CompetitionScreenHandler;
 import aysta3045.screen.CompetitionManagementScreenHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
@@ -44,11 +46,17 @@ public class Competition implements ModInitializer {
 			OpenGuiCommand.register(dispatcher);
 			CloseCommandsCommand.register(dispatcher); // 注册关闭命令权限的命令
 			StartPreparationCommand.register(dispatcher);
+			CountdownCommand.register(dispatcher); // 注册倒计时命令
 		});
 
 		// 初始化命令拦截器
 		CommandBlocker.initialize();
 
+		// 注册服务器停止事件，清理倒计时资源
+		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+			CountdownCommand.cleanup();
+			LOGGER.info("倒计时资源已清理");
+		});
 
 		LOGGER.info("AYSTA3045 权限控制系统已加载完成");
 		LOGGER.info("Competition command registered!");

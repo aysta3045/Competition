@@ -24,14 +24,22 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
     private static final int BEEF_BUTTON_Y = 18;
     private static final int BEEF_BUTTON_SIZE = 16;
 
+    // 时钟按钮的位置和大小（倒计时管理）
+    private static final int CLOCK_BUTTON_X = 44;
+    private static final int CLOCK_BUTTON_Y = 18;
+    private static final int CLOCK_BUTTON_SIZE = 16;
+
     // 生鸡肉物品堆栈
     private final ItemStack chickenStack;
     // 生牛肉物品堆栈
     private final ItemStack beefStack;
+    // 时钟物品堆栈
+    private final ItemStack clockStack;
 
     // 冷却时间相关（防止连续点击）
     private long lastChickenClickTime = 0;
     private long lastBeefClickTime = 0;
+    private long lastClockClickTime = 0;
     private static final long COOLDOWN_MS = 2000; // 2秒冷却
 
     public CompetitionManagementScreen(CompetitionManagementScreenHandler handler, PlayerInventory inventory, Text title) {
@@ -48,6 +56,11 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         this.beefStack = Items.BEEF.getDefaultStack();
         this.beefStack.set(DataComponentTypes.CUSTOM_NAME,
                 Text.literal("准备阶段").styled(style -> style.withColor(0xFFAA00)));
+
+        // 创建时钟物品堆栈并设置自定义名称
+        this.clockStack = Items.CLOCK.getDefaultStack();
+        this.clockStack.set(DataComponentTypes.CUSTOM_NAME,
+                Text.literal("倒计时管理").styled(style -> style.withColor(0x55FF55)));
     }
 
     @Override
@@ -66,9 +79,10 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         // 绘制背景纹理
         context.drawTexture(TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight);
 
-        // 绘制两个按钮
+        // 绘制三个按钮
         drawChickenButton(context);
         drawBeefButton(context);
+        drawClockButton(context);
     }
 
     @Override
@@ -80,6 +94,7 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         // 绘制悬停提示
         drawChickenTooltip(context, mouseX, mouseY);
         drawBeefTooltip(context, mouseX, mouseY);
+        drawClockTooltip(context, mouseX, mouseY);
     }
 
     /**
@@ -161,6 +176,45 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
     }
 
     /**
+     * 绘制时钟物品按钮
+     */
+    private void drawClockButton(DrawContext context) {
+        int x = this.x + CLOCK_BUTTON_X;
+        int y = this.y + CLOCK_BUTTON_Y;
+
+        // 检查是否在冷却中
+        boolean isCoolingDown = System.currentTimeMillis() - lastClockClickTime < COOLDOWN_MS;
+
+        // 绘制时钟物品
+        context.drawItem(clockStack, x, y);
+
+        // 如果在冷却中，添加灰色覆盖层
+        if (isCoolingDown) {
+            context.fill(x, y, x + CLOCK_BUTTON_SIZE, y + CLOCK_BUTTON_SIZE, 0x88000000);
+
+            // 计算剩余冷却时间
+            long remainingMs = COOLDOWN_MS - (System.currentTimeMillis() - lastClockClickTime);
+            double progress = (double) remainingMs / COOLDOWN_MS;
+            int height = (int) (CLOCK_BUTTON_SIZE * progress);
+
+            // 绘制冷却进度条
+            context.fill(x, y + (CLOCK_BUTTON_SIZE - height),
+                    x + CLOCK_BUTTON_SIZE, y + CLOCK_BUTTON_SIZE,
+                    0x6655FF55);
+        }
+
+        // 绘制物品数量
+        context.drawItemInSlot(this.textRenderer, clockStack, x, y);
+
+        // 绘制绿色边框提示（当鼠标悬停且不在冷却中时）
+        if (isMouseOverClock(this.client.mouse.getX() / this.client.getWindow().getScaleFactor(),
+                this.client.mouse.getY() / this.client.getWindow().getScaleFactor()) &&
+                !isCoolingDown) {
+            context.drawBorder(x, y, CLOCK_BUTTON_SIZE, CLOCK_BUTTON_SIZE, 0xFF55FF55);
+        }
+    }
+
+    /**
      * 绘制生鸡肉按钮的悬停提示
      */
     private void drawChickenTooltip(DrawContext context, int mouseX, int mouseY) {
@@ -200,8 +254,37 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
                         mouseX, mouseY);
             } else {
                 context.drawTooltip(this.textRenderer,
-                        Text.literal("§6左键点击：准备阶段"),
+                        Text.literal("§6左键点击：准备阶段（包含倒计时）"),
                         mouseX, mouseY);
+            }
+        }
+    }
+
+    /**
+     * 绘制时钟按钮的悬停提示
+     */
+    private void drawClockTooltip(DrawContext context, int mouseX, int mouseY) {
+        // 检查鼠标是否悬停在时钟按钮上
+        if (isMouseOverClock(mouseX, mouseY)) {
+            boolean isCoolingDown = System.currentTimeMillis() - lastClockClickTime < COOLDOWN_MS;
+
+            if (isCoolingDown) {
+                long remainingMs = COOLDOWN_MS - (System.currentTimeMillis() - lastClockClickTime);
+                double remainingSeconds = remainingMs / 1000.0;
+
+                context.drawTooltip(this.textRenderer,
+                        Text.literal("§c冷却中... (" + String.format("%.1f", remainingSeconds) + "秒后可用)"),
+                        mouseX, mouseY);
+            } else {
+                context.drawTooltip(this.textRenderer,
+                        Text.literal("§a左键点击：开始倒计时（3小时30分钟）"),
+                        mouseX, mouseY);
+                context.drawTooltip(this.textRenderer,
+                        Text.literal("§e右键点击：停止倒计时"),
+                        mouseX + 10, mouseY + 15);
+                context.drawTooltip(this.textRenderer,
+                        Text.literal("§7Shift+左键：检查倒计时状态"),
+                        mouseX + 10, mouseY + 30);
             }
         }
     }
@@ -226,6 +309,16 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
                 mouseY >= screenY && mouseY < screenY + BEEF_BUTTON_SIZE;
     }
 
+    /**
+     * 检查鼠标是否悬停在时钟按钮上
+     */
+    private boolean isMouseOverClock(double mouseX, double mouseY) {
+        int screenX = this.x + CLOCK_BUTTON_X;
+        int screenY = this.y + CLOCK_BUTTON_Y;
+        return mouseX >= screenX && mouseX < screenX + CLOCK_BUTTON_SIZE &&
+                mouseY >= screenY && mouseY < screenY + CLOCK_BUTTON_SIZE;
+    }
+
     @Override
     protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
         // 绘制标题
@@ -245,6 +338,11 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         // 检查是否左键点击了生牛肉按钮
         if (button == 0 && isMouseOverBeef(mouseX, mouseY)) {
             return handleBeefButtonClick();
+        }
+
+        // 检查是否点击了时钟按钮
+        if (isMouseOverClock(mouseX, mouseY)) {
+            return handleClockButtonClick(button);
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
@@ -310,6 +408,53 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
 
             // 更新最后点击时间
             lastBeefClickTime = System.currentTimeMillis();
+        }
+        return true;
+    }
+
+    /**
+     * 处理时钟按钮点击
+     */
+    private boolean handleClockButtonClick(int button) {
+        // 检查冷却时间
+        if (System.currentTimeMillis() - lastClockClickTime < COOLDOWN_MS) {
+            // 仍在冷却中
+            if (this.client != null && this.client.player != null) {
+                this.client.player.playSound(
+                        net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(),
+                        0.5f, 0.5f
+                );
+            }
+            return true;
+        }
+
+        if (this.client != null && this.client.player != null) {
+            // 左键：开始倒计时
+            if (button == 0) {
+                // 检查是否按下了Shift键
+                boolean hasShiftDown = hasShiftDown();
+
+                if (hasShiftDown) {
+                    // Shift+左键：检查倒计时状态
+                    this.client.player.networkHandler.sendCommand("competition checkcountdown");
+                } else {
+                    // 普通左键：开始倒计时
+                    this.client.player.networkHandler.sendCommand("competition countdown");
+                }
+            }
+            // 右键：停止倒计时
+            else if (button == 1) {
+                this.client.player.networkHandler.sendCommand("competition stopcountdown");
+            }
+
+            // 播放点击声音
+            this.client.player.playSound(
+                    net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(),
+                    0.8f, 1.0f
+            );
+
+            // 更新最后点击时间
+            lastClockClickTime = System.currentTimeMillis();
         }
         return true;
     }
