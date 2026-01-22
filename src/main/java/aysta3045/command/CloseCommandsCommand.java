@@ -357,7 +357,7 @@ public class CloseCommandsCommand {
                 }
             } else {
                 source.sendMessage(
-                        Text.literal("  §7(太多离线玩家，使用 /competition restoreallcmds 恢复所有)")
+                        Text.literal("  §7(太多离线玩家)")
                                 .styled(style -> style.withColor(0x888888))
                 );
             }
