@@ -13,7 +13,6 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.util.Formatting;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -124,16 +123,17 @@ public class CountdownCommand {
                 } else if (currentSeconds == 30) { // 30秒
                     broadcastMessage(source, "§6[比赛系统] §c剩余时间: §e30秒");
                     playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1.0f);
-                } else if (currentSeconds <= 10 && currentSeconds > 0) { // 最后10秒
+                } else if (currentSeconds == 10) { // 只在第10秒提示一次
+                    // 显示剩余10秒提示
                     broadcastTitleForAll(source,
-                            Text.literal("§c§l" + currentSeconds),
-                            Text.literal("§7秒后结束"));
+                            Text.literal("§c§l最后10秒"),
+                            Text.literal("§7即将结束"));
                     playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0f);
                 }
 
-                // 每分钟更新一次显示
-                if (currentSeconds % 60 == 0 && currentSeconds > 0) {
-                    updateTitleForAll(source, currentSeconds);
+                // 每半小时更新一次显示（除了最后10秒）
+                if (currentSeconds % 1800 == 0 && currentSeconds > 0 && currentSeconds > 10) {
+                    updateHalfHourForAll(source, currentSeconds);
                 }
 
             } catch (Exception e) {
@@ -275,10 +275,22 @@ public class CountdownCommand {
         }
     }
 
-    private static void updateTitleForAll(ServerCommandSource source, int seconds) {
+    private static void updateHalfHourForAll(ServerCommandSource source, int seconds) {
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            int minutes = seconds / 60;
-            String timeText = minutes + "分钟";
+            // 将秒转换为小时和分钟
+            int hours = seconds / 3600;
+            int minutes = (seconds % 3600) / 60;
+
+            String timeText;
+            if (hours > 0) {
+                if (minutes == 0) {
+                    timeText = hours + "小时";
+                } else {
+                    timeText = hours + "小时" + minutes + "分钟";
+                }
+            } else {
+                timeText = minutes + "分钟";
+            }
 
             player.sendMessage(
                     Text.literal("§6[比赛系统] §a剩余时间: §e" + timeText)
