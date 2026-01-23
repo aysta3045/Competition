@@ -25,9 +25,14 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
     private static final int BEEF_BUTTON_SIZE = 16;
 
     // 时钟按钮的位置和大小（倒计时管理）
-    private static final int CLOCK_BUTTON_X = 44;
-    private static final int CLOCK_BUTTON_Y = 18;
+    private static final int CLOCK_BUTTON_X = 8;
+    private static final int CLOCK_BUTTON_Y = 54;
     private static final int CLOCK_BUTTON_SIZE = 16;
+
+    // 白色旗帜按钮的位置和大小（队伍管理）
+    private static final int FLAG_BUTTON_X = 26;
+    private static final int FLAG_BUTTON_Y = 54;
+    private static final int FLAG_BUTTON_SIZE = 16;
 
     // 生鸡肉物品堆栈
     private final ItemStack chickenStack;
@@ -35,11 +40,14 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
     private final ItemStack beefStack;
     // 时钟物品堆栈
     private final ItemStack clockStack;
+    // 白色旗帜物品堆栈
+    private final ItemStack flagStack;
 
     // 冷却时间相关（防止连续点击）
     private long lastChickenClickTime = 0;
     private long lastBeefClickTime = 0;
     private long lastClockClickTime = 0;
+    private long lastFlagClickTime = 0;
     private static final long COOLDOWN_MS = 2000; // 2秒冷却
 
     public CompetitionManagementScreen(CompetitionManagementScreenHandler handler, PlayerInventory inventory, Text title) {
@@ -61,6 +69,11 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         this.clockStack = Items.CLOCK.getDefaultStack();
         this.clockStack.set(DataComponentTypes.CUSTOM_NAME,
                 Text.literal("倒计时管理").styled(style -> style.withColor(0x55FF55)));
+
+        // 创建白色旗帜物品堆栈并设置自定义名称
+        this.flagStack = Items.WHITE_BANNER.getDefaultStack();
+        this.flagStack.set(DataComponentTypes.CUSTOM_NAME,
+                Text.literal("队伍管理").styled(style -> style.withColor(0xFFFFFF)));
     }
 
     @Override
@@ -79,10 +92,11 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         // 绘制背景纹理
         context.drawTexture(TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight);
 
-        // 绘制三个按钮
+        // 绘制四个按钮
         drawChickenButton(context);
         drawBeefButton(context);
         drawClockButton(context);
+        drawFlagButton(context);
     }
 
     @Override
@@ -95,6 +109,7 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         drawChickenTooltip(context, mouseX, mouseY);
         drawBeefTooltip(context, mouseX, mouseY);
         drawClockTooltip(context, mouseX, mouseY);
+        drawFlagTooltip(context, mouseX, mouseY);
     }
 
     /**
@@ -215,6 +230,45 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
     }
 
     /**
+     * 绘制白色旗帜按钮
+     */
+    private void drawFlagButton(DrawContext context) {
+        int x = this.x + FLAG_BUTTON_X;
+        int y = this.y + FLAG_BUTTON_Y;
+
+        // 检查是否在冷却中
+        boolean isCoolingDown = System.currentTimeMillis() - lastFlagClickTime < COOLDOWN_MS;
+
+        // 绘制白色旗帜物品
+        context.drawItem(flagStack, x, y);
+
+        // 如果在冷却中，添加灰色覆盖层
+        if (isCoolingDown) {
+            context.fill(x, y, x + FLAG_BUTTON_SIZE, y + FLAG_BUTTON_SIZE, 0x88000000);
+
+            // 计算剩余冷却时间
+            long remainingMs = COOLDOWN_MS - (System.currentTimeMillis() - lastFlagClickTime);
+            double progress = (double) remainingMs / COOLDOWN_MS;
+            int height = (int) (FLAG_BUTTON_SIZE * progress);
+
+            // 绘制冷却进度条
+            context.fill(x, y + (FLAG_BUTTON_SIZE - height),
+                    x + FLAG_BUTTON_SIZE, y + FLAG_BUTTON_SIZE,
+                    0x66FFFFFF);
+        }
+
+        // 绘制物品数量
+        context.drawItemInSlot(this.textRenderer, flagStack, x, y);
+
+        // 绘制白色边框提示（当鼠标悬停且不在冷却中时）
+        if (isMouseOverFlag(this.client.mouse.getX() / this.client.getWindow().getScaleFactor(),
+                this.client.mouse.getY() / this.client.getWindow().getScaleFactor()) &&
+                !isCoolingDown) {
+            context.drawBorder(x, y, FLAG_BUTTON_SIZE, FLAG_BUTTON_SIZE, 0xFFFFFFFF);
+        }
+    }
+
+    /**
      * 绘制生鸡肉按钮的悬停提示
      */
     private void drawChickenTooltip(DrawContext context, int mouseX, int mouseY) {
@@ -290,6 +344,32 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
     }
 
     /**
+     * 绘制白色旗帜按钮的悬停提示
+     */
+    private void drawFlagTooltip(DrawContext context, int mouseX, int mouseY) {
+        // 检查鼠标是否悬停在白色旗帜按钮上
+        if (isMouseOverFlag(mouseX, mouseY)) {
+            boolean isCoolingDown = System.currentTimeMillis() - lastFlagClickTime < COOLDOWN_MS;
+
+            if (isCoolingDown) {
+                long remainingMs = COOLDOWN_MS - (System.currentTimeMillis() - lastFlagClickTime);
+                double remainingSeconds = remainingMs / 1000.0;
+
+                context.drawTooltip(this.textRenderer,
+                        Text.literal("§c冷却中... (" + String.format("%.1f", remainingSeconds) + "秒后可用)"),
+                        mouseX, mouseY);
+            } else {
+                context.drawTooltip(this.textRenderer,
+                        Text.literal("§f左键点击：显示FTB Teams队伍分组"),
+                        mouseX, mouseY);
+                context.drawTooltip(this.textRenderer,
+                        Text.literal("§7按红橙黄绿青蓝紫顺序分配队伍颜色"),
+                        mouseX + 10, mouseY + 15);
+            }
+        }
+    }
+
+    /**
      * 检查鼠标是否悬停在生鸡肉按钮上
      */
     private boolean isMouseOverChicken(double mouseX, double mouseY) {
@@ -319,6 +399,16 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
                 mouseY >= screenY && mouseY < screenY + CLOCK_BUTTON_SIZE;
     }
 
+    /**
+     * 检查鼠标是否悬停在白色旗帜按钮上
+     */
+    private boolean isMouseOverFlag(double mouseX, double mouseY) {
+        int screenX = this.x + FLAG_BUTTON_X;
+        int screenY = this.y + FLAG_BUTTON_Y;
+        return mouseX >= screenX && mouseX < screenX + FLAG_BUTTON_SIZE &&
+                mouseY >= screenY && mouseY < screenY + FLAG_BUTTON_SIZE;
+    }
+
     @Override
     protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
         // 绘制标题
@@ -343,6 +433,11 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
         // 检查是否点击了时钟按钮
         if (isMouseOverClock(mouseX, mouseY)) {
             return handleClockButtonClick(button);
+        }
+
+        // 检查是否左键点击了白色旗帜按钮
+        if (button == 0 && isMouseOverFlag(mouseX, mouseY)) {
+            return handleFlagButtonClick();
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
@@ -455,6 +550,38 @@ public class CompetitionManagementScreen extends HandledScreen<CompetitionManage
 
             // 更新最后点击时间
             lastClockClickTime = System.currentTimeMillis();
+        }
+        return true;
+    }
+
+    /**
+     * 处理白色旗帜按钮点击
+     */
+    private boolean handleFlagButtonClick() {
+        // 检查冷却时间
+        if (System.currentTimeMillis() - lastFlagClickTime < COOLDOWN_MS) {
+            // 仍在冷却中
+            if (this.client != null && this.client.player != null) {
+                this.client.player.playSound(
+                        net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(),
+                        0.5f, 0.5f
+                );
+            }
+            return true;
+        }
+
+        if (this.client != null && this.client.player != null) {
+            // 使用命令方式来执行
+            this.client.player.networkHandler.sendCommand("competition showteams");
+
+            // 播放点击声音
+            this.client.player.playSound(
+                    net.minecraft.sound.SoundEvents.UI_BUTTON_CLICK.value(),
+                    0.8f, 1.0f
+            );
+
+            // 更新最后点击时间
+            lastFlagClickTime = System.currentTimeMillis();
         }
         return true;
     }

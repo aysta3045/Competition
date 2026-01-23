@@ -1,4 +1,3 @@
-// [file name]: CountdownCommand.java
 package aysta3045.command;
 
 import com.mojang.brigadier.CommandDispatcher;

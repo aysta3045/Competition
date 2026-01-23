@@ -1,10 +1,6 @@
 package aysta3045;
 
-import aysta3045.command.CommandBlocker;
-import aysta3045.command.OpenGuiCommand;
-import aysta3045.command.CloseCommandsCommand;
-import aysta3045.command.StartPreparationCommand;
-import aysta3045.command.CountdownCommand; // 添加导入
+import aysta3045.command.*;
 import aysta3045.screen.CompetitionScreenHandler;
 import aysta3045.screen.CompetitionManagementScreenHandler;
 import net.fabricmc.api.ModInitializer;
@@ -47,6 +43,7 @@ public class Competition implements ModInitializer {
 			CloseCommandsCommand.register(dispatcher); // 注册关闭命令权限的命令
 			StartPreparationCommand.register(dispatcher);
 			CountdownCommand.register(dispatcher); // 注册倒计时命令
+			ShowTeamsCommand.register(dispatcher);
 		});
 
 		// 初始化命令拦截器
