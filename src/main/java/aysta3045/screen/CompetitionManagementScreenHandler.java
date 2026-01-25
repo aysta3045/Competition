@@ -1,6 +1,5 @@
 package aysta3045.screen;
 
-import aysta3045.Competition;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
