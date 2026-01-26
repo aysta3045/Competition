@@ -104,30 +104,51 @@ public class CountdownCommand {
                 }
 
                 // 特殊时间点提示
-                if (currentSeconds == 3600) { // 1小时
-                    broadcastMessage(source, "§6[比赛系统] §a剩余时间: §e1小时");
-                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 0.8f);
-                } else if (currentSeconds == 1800) { // 30分钟
-                    broadcastMessage(source, "§6[比赛系统] §a剩余时间: §e30分钟");
-                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 0.8f);
-                } else if (currentSeconds == 600) { // 10分钟
+                if (currentSeconds == 600) {
                     broadcastMessage(source, "§6[比赛系统] §a剩余时间: §e10分钟");
                     playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 1.0f);
-                } else if (currentSeconds == 300) { // 5分钟
+                } else if (currentSeconds == 300) {
                     broadcastMessage(source, "§6[比赛系统] §c剩余时间: §e5分钟");
                     playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), 1.0f);
-                } else if (currentSeconds == 60) { // 1分钟
+                } else if (currentSeconds == 180) {
+                    broadcastMessage(source, "§6[比赛系统] §c剩余时间: §e3分钟");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1.0f);
+                } else if (currentSeconds == 60) {
                     broadcastMessage(source, "§6[比赛系统] §c剩余时间: §e1分钟");
                     playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1.0f);
-                } else if (currentSeconds == 30) { // 30秒
+                } else if (currentSeconds == 30) {
                     broadcastMessage(source, "§6[比赛系统] §c剩余时间: §e30秒");
                     playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), 1.0f);
-                } else if (currentSeconds == 10) { // 只在第10秒提示一次
-                    // 显示剩余10秒提示
-                    broadcastTitleForAll(source,
-                            Text.literal("§c§l最后10秒"),
-                            Text.literal("§7即将结束"));
-                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0f);
+                } else if (currentSeconds == 10) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l最后10秒！");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 9) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l9");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 8) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l8");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 7) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l7");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 6) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l6");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 5) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l5");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 4) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l4");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 3) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l3");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 2) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l2");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.2f);
+                } else if (currentSeconds == 1) {
+                    broadcastMessage(source, "§6[比赛系统] §c§l1");
+                    playSoundForAll(source, SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.5f);
                 }
 
                 // 每半小时更新一次显示（除了最后10秒）
@@ -314,7 +335,11 @@ public class CountdownCommand {
                     return String.format("%d小时%d分", hours, minutes);
                 }
             } else {
-                return String.format("%d小时", hours);
+                if (seconds > 0) {
+                    return String.format("%d小时%d秒", hours, seconds);
+                } else {
+                    return String.format("%d小时", hours);
+                }
             }
         } else {
             if (seconds > 0) {

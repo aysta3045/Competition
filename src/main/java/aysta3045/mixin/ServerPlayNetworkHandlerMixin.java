@@ -56,6 +56,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
                 lowerCommand.startsWith("say ") ||
                 lowerCommand.equals("help") ||
                 lowerCommand.equals("list") ||
+                lowerCommand.equals("teammsg") ||
                 lowerCommand.equals("online");
     }
 }
