@@ -157,25 +157,11 @@ public class StartPreparationCommand {
                     Text.literal("§a已成功将以下玩家设为准备状态：§e" + playersList.toString())
             );
 
-            // 启动倒计时（默认3小时30分钟）
-            source.sendMessage(
-                    Text.literal("§a正在启动倒计时（3小时30分钟）...")
-            );
-
-            // 执行倒计时命令
-            source.getServer().getCommandManager().executeWithPrefix(
-                    source,
-                    "competition countdown 12600"
-            );
-
             // 广播消息
             for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
                 player.sendMessage(
                         Text.literal("§6管理员 " + sender.getName().getString() +
                                 " 启动了比赛准备阶段")
-                );
-                player.sendMessage(
-                        Text.literal("§6比赛倒计时已开始，剩余时间: §e3小时30分钟")
                 );
             }
 
@@ -191,11 +177,6 @@ public class StartPreparationCommand {
 
     /**
      * 清理玩家背包（不包括末影箱）
-     * 清理范围包括：
-     * 1. 主物品栏（36个槽位）
-     * 2. 装备栏（4个槽位）
-     * 3. 副手（1个槽位）
-     * 4. 快捷栏（9个槽位，包含在主物品栏中）
      */
     private static void clearPlayerInventory(ServerPlayerEntity player) {
         PlayerInventory inventory = player.getInventory();
@@ -206,10 +187,10 @@ public class StartPreparationCommand {
         }
 
         // 清理装备栏（头盔、胸甲、护腿、靴子）
-        inventory.armor.set(0, ItemStack.EMPTY); // 靴子
-        inventory.armor.set(1, ItemStack.EMPTY); // 护腿
-        inventory.armor.set(2, ItemStack.EMPTY); // 胸甲
-        inventory.armor.set(3, ItemStack.EMPTY); // 头盔
+        inventory.armor.set(0, ItemStack.EMPTY);
+        inventory.armor.set(1, ItemStack.EMPTY);
+        inventory.armor.set(2, ItemStack.EMPTY);
+        inventory.armor.set(3, ItemStack.EMPTY);
 
         // 清理副手
         inventory.offHand.set(0, ItemStack.EMPTY);
