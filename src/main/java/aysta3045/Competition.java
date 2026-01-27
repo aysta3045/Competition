@@ -40,10 +40,11 @@ public class Competition implements ModInitializer {
 		// 注册命令
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			OpenGuiCommand.register(dispatcher);
-			CloseCommandsCommand.register(dispatcher); // 注册关闭命令权限的命令
+			CloseCommandsCommand.register(dispatcher);
 			StartPreparationCommand.register(dispatcher);
-			CountdownCommand.register(dispatcher); // 注册倒计时命令
+			CountdownCommand.register(dispatcher);
 			TeamSetCommand.register(dispatcher);
+			StartCompetitionCommand.register(dispatcher);
 		});
 
 		// 初始化命令拦截器
@@ -53,6 +54,7 @@ public class Competition implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			CountdownCommand.cleanup();
 			LOGGER.info("倒计时资源已清理");
+			StartCompetitionCommand.onServerStop();
 		});
 
 		LOGGER.info("AYSTA3045 权限控制系统已加载完成");

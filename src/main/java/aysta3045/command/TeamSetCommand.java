@@ -8,7 +8,6 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,8 +43,7 @@ public class TeamSetCommand {
         VANILLA_TEAM_COLOR_MAP.put("purple", "light_purple");
     }
 
-    // 团队信息类
-    private static class TeamInfo {
+    public static class TeamInfo {
         private final String displayName;
         private final String vanillaColor;
         private final String colorCode;
