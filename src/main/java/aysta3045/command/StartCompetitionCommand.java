@@ -175,16 +175,18 @@ public class StartCompetitionCommand {
         // 记录所有玩家的位置（除了执行命令的玩家）
         ServerPlayerEntity sender = source.getPlayer();
 
-        for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            if (player != sender) {
-                playerPositions.put(player.getUuid(), player.getPos());
-            }
-        }
+        // 首先清空之前的队伍分组
+        teamPlayers.clear();
+        teamAveragePositions.clear();
 
-        // 根据teamset分组信息组织玩家
+        // 根据teamset分组信息组织玩家，并记录位置
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            if (player == sender) continue;
+            if (player == sender) continue; // 跳过执行者
 
+            // 记录玩家当前位置
+            playerPositions.put(player.getUuid(), player.getPos());
+
+            // 根据队伍分组
             String teamColor = TeamSetCommand.getPlayerTeam(player);
             if (teamColor != null) {
                 teamPlayers.computeIfAbsent(teamColor, k -> new ArrayList<>()).add(player);
@@ -206,6 +208,7 @@ public class StartCompetitionCommand {
             double totalZ = 0;
             int count = 0;
 
+            // 只计算当前队伍玩家的坐标
             for (ServerPlayerEntity player : players) {
                 Vec3d pos = playerPositions.get(player.getUuid());
                 if (pos != null) {
@@ -220,9 +223,13 @@ public class StartCompetitionCommand {
                 Vec3d averagePos = new Vec3d(totalX / count, totalY / count, totalZ / count);
                 teamAveragePositions.put(teamColor, averagePos);
 
+                // 获取队伍信息
+                TeamSetCommand.TeamInfo teamInfo = TeamSetCommand.TEAM_COLORS.get(teamColor);
+                String teamName = teamInfo != null ? teamInfo.getDisplayName() : "未分组";
+
                 // 记录到控制台
                 source.getServer().sendMessage(
-                        Text.literal("[比赛系统] 队伍 " + teamColor + " 平均坐标: " +
+                        Text.literal("[比赛系统] 队伍 " + teamName + " 平均坐标: " +
                                 String.format("%.1f, %.1f, %.1f", averagePos.x, averagePos.y, averagePos.z))
                 );
             }
@@ -373,6 +380,7 @@ public class StartCompetitionCommand {
 
         return 1;
     }
+
     private static void cleanup() {
         isRecordingPositions = false;
         playerPositions.clear();

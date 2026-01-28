@@ -241,7 +241,7 @@ public class CountdownCommand {
         return 1;
     }
 
-    private static void stopCountdown() {
+    static void stopCountdown() {
         isCountingDown = false;
         if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdownNow();
