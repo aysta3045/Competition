@@ -40,6 +40,11 @@ public class StartPreparationCommand {
 
         Set<String> preparedPlayers = new HashSet<>();
 
+        // 启动末影龙击杀监听（如果尚未启动）
+        if (!EndCompetitionOnDragonKillCommand.isMonitoring()) {
+            source.getServer().getCommandManager().executeWithPrefix(source, "competition endondragonkill");
+        }
+
         // 准备阶段操作
         for (ServerPlayerEntity target : source.getServer().getPlayerManager().getPlayerList()) {
             if (target != sender) {
