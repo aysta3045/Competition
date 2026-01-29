@@ -46,6 +46,7 @@ public class Competition implements ModInitializer {
 			TeamSetCommand.register(dispatcher);
 			StartCompetitionCommand.register(dispatcher);
 			EndCompetitionOnDragonKillCommand.register(dispatcher);
+			EndPortalMonitorCommand.register(dispatcher);
 		});
 
 		// 初始化命令拦截器
@@ -54,13 +55,11 @@ public class Competition implements ModInitializer {
 		// 注册服务器停止事件，清理倒计时资源
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			CountdownCommand.cleanup();
-			LOGGER.info("倒计时资源已清理");
 			StartCompetitionCommand.onServerStop();
 			EndCompetitionOnDragonKillCommand.onServerStop();
+			EndPortalMonitorCommand.onServerStop();
 		});
 
-		LOGGER.info("AYSTA3045 权限控制系统已加载完成");
-		LOGGER.info("Competition command registered!");
-		LOGGER.info("Successfully registered Competition GUI");
+		LOGGER.info("AYSTA3045 控制系统已加载完成");
 	}
 }

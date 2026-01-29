@@ -54,7 +54,7 @@ public class StartPreparationCommand {
                 // 1. 设置为冒险模式（不能破坏方块）
                 target.changeGameMode(GameMode.ADVENTURE);
 
-                // 2. 传送到指定位置 (0, 100, 0)
+                // 2. 传送到指定位置
                 target.teleport(
                         target.getServerWorld(),
                         0, 300, 0,
@@ -88,7 +88,7 @@ public class StartPreparationCommand {
                         true
                 ));
 
-                // 6. 给予缓慢效果（虽然效果有限，但配合漂浮效果更好）
+                // 6. 给予缓慢效果
                 target.addStatusEffect(new StatusEffectInstance(
                         StatusEffects.SLOWNESS,
                         20 * 60 * 60, // 1小时
@@ -191,7 +191,7 @@ public class StartPreparationCommand {
             inventory.setStack(i, ItemStack.EMPTY);
         }
 
-        // 清理装备栏（头盔、胸甲、护腿、靴子）
+        // 清理装备栏
         inventory.armor.set(0, ItemStack.EMPTY);
         inventory.armor.set(1, ItemStack.EMPTY);
         inventory.armor.set(2, ItemStack.EMPTY);
