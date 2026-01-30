@@ -325,6 +325,9 @@ public class StartCompetitionCommand {
             );
         }
 
+        // 启动倒计时
+        source.getServer().getCommandManager().executeWithPrefix(source, "competition countdown");
+
         // 记录到控制台
         source.getServer().sendMessage(
                 Text.literal("[比赛系统] 比赛正式开始！所有玩家已传送至队伍出生点")

@@ -11,6 +11,10 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.advancement.AdvancementEntry;
+import net.minecraft.advancement.AdvancementProgress;
+import net.minecraft.advancement.PlayerAdvancementTracker;
+import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +40,20 @@ public class EndPortalMonitorCommand {
 
     // 框架去重距离（格）
     private static final int FRAME_MIN_DISTANCE = 10; // 两个框架之间的最小距离，小于此距离视为同一个框架
+
+    // 存储已获得"隔墙有眼"成就的玩家UUID
+    private static final Set<UUID> playersWithEyeSpy = ConcurrentHashMap.newKeySet();
+
+    // 存储已获得"进入末地"成就的玩家UUID
+    private static final Set<UUID> playersEnteredEnd = ConcurrentHashMap.newKeySet();
+
+    // "隔墙有眼"成就的ID
+    private static final Identifier EYE_SPY_ADVANCEMENT =
+            Identifier.of("minecraft", "story/follow_ender_eye");
+
+    // "进入末地"成就的ID（使用enter_end_portal，这是通过末地传送门进入末地的成就）
+    private static final Identifier ENTER_END_ADVANCEMENT =
+            Identifier.of("minecraft", "end/enter_end_portal");
 
     // 框架信息类
     public static class FrameInfo {
@@ -94,6 +112,10 @@ public class EndPortalMonitorCommand {
                         .requires(source -> source.hasPermissionLevel(2))
                         .executes(EndPortalMonitorCommand::testPortalBroadcast)
                 )
+                .then(CommandManager.literal("checkeyespy")
+                        .requires(source -> source.hasPermissionLevel(2))
+                        .executes(EndPortalMonitorCommand::checkEyeSpyStatus)
+                )
         );
     }
 
@@ -120,10 +142,19 @@ public class EndPortalMonitorCommand {
         }
 
         isMonitoring = true;
+        playersWithEyeSpy.clear();
+        playersEnteredEnd.clear();
 
         // 启动监听任务（每秒检查一次）
         scheduler.scheduleAtFixedRate(() -> {
             try {
+                // 1. 检查所有在线玩家是否获得了"进入末地"成就
+                checkPlayersForEnterEndAchievement(source);
+
+                // 2. 对于已获得"进入末地"成就的玩家，停止监听
+                stopMonitoringForEnteredPlayers(source);
+
+                // 3. 只对未进入末地且已获得"隔墙有眼"成就的玩家进行末地门框架检查
                 checkForEndPortalFrames(source);
             } catch (Exception e) {
                 System.err.println("末地门框架监听异常: " + e.getMessage());
@@ -135,6 +166,8 @@ public class EndPortalMonitorCommand {
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 cleanupOldFrames();
+                // 清理离线玩家（如果他们不再在线）
+                cleanupOfflinePlayers(source);
             } catch (Exception e) {
                 System.err.println("清理框架记录异常: " + e.getMessage());
                 e.printStackTrace();
@@ -147,14 +180,10 @@ public class EndPortalMonitorCommand {
                     Text.literal("§6[比赛系统] §a末地门框架监听已启动!")
                             .styled(style -> style.withColor(0x55FF55))
             );
-
-            player.sendMessage(
-                    Text.literal("§6[比赛系统] §e新发现的末地门框架将被全局播报!")
-            );
         }
 
         source.sendMessage(
-                Text.literal("§a已启动末地门框架监听! 新发现的框架将被自动播报。")
+                Text.literal("§a已启动末地门框架监听! 仅对获得'隔墙有眼'且未进入末地的玩家生效。")
         );
 
         // 记录到控制台
@@ -279,15 +308,17 @@ public class EndPortalMonitorCommand {
         detectedFrames.clear();
         frameDetectionTime.clear();
         frameInfoMap.clear();
+        playersWithEyeSpy.clear();
+        playersEnteredEnd.clear();
 
         source.sendMessage(
-                Text.literal("§a已清除 §e" + clearedCount + " §a个框架记录")
+                Text.literal("§a已清除 §e" + clearedCount + " §a个框架记录和所有玩家成就状态")
         );
 
         // 记录到控制台
         source.getServer().sendMessage(
                 Text.literal("[比赛系统] " + sender.getName().getString() +
-                        " 清除了所有框架记录 (" + clearedCount + "个)")
+                        " 清除了所有框架记录和玩家成就状态 (" + clearedCount + "个)")
         );
 
         return clearedCount;
@@ -316,10 +347,209 @@ public class EndPortalMonitorCommand {
         return 1;
     }
 
-    private static void checkForEndPortalFrames(ServerCommandSource source) {
-        // 检查所有在线玩家周围区域的末地门框架
+    private static int checkEyeSpyStatus(CommandContext<ServerCommandSource> context) {
+        ServerCommandSource source = context.getSource();
+
+        List<String> playersWithEyeSpyAchievement = new ArrayList<>();
+        List<String> playersEnteredEndList = new ArrayList<>();
+        List<String> playersWithoutAchievement = new ArrayList<>();
+
+        // 检查所有在线玩家
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            checkPlayerAreaForFrames(player, source);
+            if (hasEnterEndAchievement(player)) {
+                playersEnteredEndList.add(player.getName().getString());
+            } else if (hasEyeSpyAchievement(player)) {
+                playersWithEyeSpyAchievement.add(player.getName().getString());
+            } else {
+                playersWithoutAchievement.add(player.getName().getString());
+            }
+        }
+
+        source.sendMessage(
+                Text.literal("§6========== 玩家状态监控 ==========")
+                        .styled(style -> style.withColor(0xFFAA00))
+        );
+
+        if (!playersEnteredEndList.isEmpty()) {
+            source.sendMessage(
+                    Text.literal("§a已进入末地的玩家 (§e" + playersEnteredEndList.size() + "§a) - 停止监听:")
+            );
+            for (String playerName : playersEnteredEndList) {
+                source.sendMessage(
+                        Text.literal("  §6✓ §e" + playerName + " §7(已进入末地，停止监听)")
+                );
+            }
+        }
+
+        if (!playersWithEyeSpyAchievement.isEmpty()) {
+            source.sendMessage(
+                    Text.literal("§a未进入末地且已获得'隔墙有眼'的玩家 (§e" + playersWithEyeSpyAchievement.size() + "§a) - 正在监听:")
+            );
+            for (String playerName : playersWithEyeSpyAchievement) {
+                source.sendMessage(
+                        Text.literal("  §a✓ §e" + playerName)
+                );
+            }
+        }
+
+        if (!playersWithoutAchievement.isEmpty()) {
+            source.sendMessage(
+                    Text.literal("§c未获得'隔墙有眼'成就的玩家 (§e" + playersWithoutAchievement.size() + "§c) - 不监听:")
+            );
+            for (String playerName : playersWithoutAchievement) {
+                source.sendMessage(
+                        Text.literal("  §c✗ §7" + playerName)
+                );
+            }
+        }
+
+        source.sendMessage(
+                Text.literal("§6监听规则：获得'隔墙有眼'成就但未进入末地的玩家")
+        );
+
+        return playersWithEyeSpyAchievement.size();
+    }
+
+    /**
+     * 检查玩家是否获得了"隔墙有眼"成就
+     */
+    private static boolean hasEyeSpyAchievement(ServerPlayerEntity player) {
+        if (player == null) return false;
+
+        PlayerAdvancementTracker advancementTracker = player.getAdvancementTracker();
+
+        // 获取服务器注册表中的AdvancementEntry
+        AdvancementEntry advancementEntry = player.getServer()
+                .getAdvancementLoader()
+                .get(EYE_SPY_ADVANCEMENT);
+
+        if (advancementEntry != null) {
+            AdvancementProgress progress = advancementTracker.getProgress(advancementEntry);
+            return progress.isDone();
+        }
+
+        return false;
+    }
+
+    /**
+     * 检查玩家是否获得了"进入末地"成就
+     */
+    private static boolean hasEnterEndAchievement(ServerPlayerEntity player) {
+        if (player == null) return false;
+
+        PlayerAdvancementTracker advancementTracker = player.getAdvancementTracker();
+
+        // 获取服务器注册表中的AdvancementEntry
+        AdvancementEntry advancementEntry = player.getServer()
+                .getAdvancementLoader()
+                .get(ENTER_END_ADVANCEMENT);
+
+        if (advancementEntry != null) {
+            AdvancementProgress progress = advancementTracker.getProgress(advancementEntry);
+            return progress.isDone();
+        }
+
+        return false;
+    }
+
+    /**
+     * 检查所有在线玩家是否获得了"进入末地"成就
+     */
+    private static void checkPlayersForEnterEndAchievement(ServerCommandSource source) {
+        for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
+            if (hasEnterEndAchievement(player)) {
+                // 如果玩家获得了进入末地成就，添加到已进入列表
+                if (playersEnteredEnd.add(player.getUuid())) {
+                    // 如果是新添加的，记录到控制台
+                    source.getServer().sendMessage(
+                            Text.literal("[比赛系统] 玩家 " + player.getName().getString() +
+                                    " 已进入末地，将停止监听其末地门框架")
+                    );
+                }
+            } else {
+                // 如果玩家没有进入末地，从进入末地列表中移除
+                playersEnteredEnd.remove(player.getUuid());
+            }
+        }
+    }
+
+    /**
+     * 停止对已进入末地玩家的监听
+     */
+    private static void stopMonitoringForEnteredPlayers(ServerCommandSource source) {
+        for (UUID playerId : playersEnteredEnd) {
+            // 如果该玩家在监听列表中，移除它
+            if (playersWithEyeSpy.remove(playerId)) {
+                // 获取玩家对象
+                ServerPlayerEntity player = source.getServer().getPlayerManager().getPlayer(playerId);
+                if (player != null) {
+                    // 记录到控制台
+                    source.getServer().sendMessage(
+                            Text.literal("[比赛系统] 玩家 " + player.getName().getString() +
+                                    " 已进入末地，已停止监听其末地门框架")
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * 检查玩家是否应该被监听（获得"隔墙有眼"且未进入末地）
+     */
+    private static void checkPlayersForEyeSpyAchievement(ServerCommandSource source) {
+        for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
+            // 跳过已进入末地的玩家
+            if (playersEnteredEnd.contains(player.getUuid())) {
+                continue;
+            }
+
+            if (hasEyeSpyAchievement(player)) {
+                // 如果玩家获得了成就且未进入末地，添加到监听列表
+                if (playersWithEyeSpy.add(player.getUuid())) {
+                    // 如果是新添加的，记录到控制台
+                    source.getServer().sendMessage(
+                            Text.literal("[比赛系统] 玩家 " + player.getName().getString() +
+                                    " 已获得'隔墙有眼'成就且未进入末地，开始监听其末地门框架")
+                    );
+                }
+            } else {
+                // 如果玩家没有成就，从监听列表中移除
+                if (playersWithEyeSpy.remove(player.getUuid())) {
+                    // 如果是刚移除的，记录到控制台
+                    source.getServer().sendMessage(
+                            Text.literal("[比赛系统] 玩家 " + player.getName().getString() +
+                                    " 失去'隔墙有眼'成就状态或已进入末地，停止监听其末地门框架")
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * 清理离线玩家
+     */
+    private static void cleanupOfflinePlayers(ServerCommandSource source) {
+        Set<UUID> onlinePlayers = new HashSet<>();
+
+        // 收集所有在线玩家的UUID
+        for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
+            onlinePlayers.add(player.getUuid());
+        }
+
+        // 从监听列表中移除离线玩家
+        playersWithEyeSpy.removeIf(uuid -> !onlinePlayers.contains(uuid));
+        playersEnteredEnd.removeIf(uuid -> !onlinePlayers.contains(uuid));
+    }
+
+    private static void checkForEndPortalFrames(ServerCommandSource source) {
+        // 先检查哪些玩家应该被监听（获得隔墙有眼且未进入末地）
+        checkPlayersForEyeSpyAchievement(source);
+
+        // 只检查符合条件的玩家周围区域的末地门框架
+        for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
+            if (playersWithEyeSpy.contains(player.getUuid())) {
+                checkPlayerAreaForFrames(player, source);
+            }
         }
     }
 
@@ -495,6 +725,8 @@ public class EndPortalMonitorCommand {
         detectedFrames.clear();
         frameDetectionTime.clear();
         frameInfoMap.clear();
+        playersWithEyeSpy.clear();
+        playersEnteredEnd.clear();
     }
 
     // 获取监听状态的方法（供其他类使用）

@@ -45,6 +45,10 @@ public class StartPreparationCommand {
             source.getServer().getCommandManager().executeWithPrefix(source, "competition endondragonkill");
         }
 
+        if (!EndPortalMonitorCommand.isMonitoring()) {
+            source.getServer().getCommandManager().executeWithPrefix(source, "competition endportalmonitor");
+        }
+
         // 准备阶段操作
         for (ServerPlayerEntity target : source.getServer().getPlayerManager().getPlayerList()) {
             if (target != sender) {
@@ -202,9 +206,6 @@ public class StartPreparationCommand {
 
         // 标记物品栏已更改
         inventory.markDirty();
-
-        // 可选：在控制台记录背包清理
-        System.out.println("[比赛系统] 已清理玩家 " + player.getName().getString() + " 的背包");
 
         // 给玩家发送提示信息
         player.sendMessage(Text.literal("§c你的背包已被清空，准备比赛！"), false);
