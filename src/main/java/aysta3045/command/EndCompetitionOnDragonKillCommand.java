@@ -226,13 +226,6 @@ public class EndCompetitionOnDragonKillCommand {
     private static void announceCompetitionEnd(ServerCommandSource source, ServerPlayerEntity killer) {
         // 广播游戏结束效果
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
-            // 显示结束标题
-            player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(
-                    Text.literal("§c§l比赛结束!")
-            ));
-            player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(
-                    Text.literal("§e末影龙已被击杀!")
-            ));
 
             // 播放庆祝音效
             player.playSound(net.minecraft.sound.SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
@@ -262,14 +255,6 @@ public class EndCompetitionOnDragonKillCommand {
                 );
 
                 // 给予击杀者特殊效果
-                player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
-                        net.minecraft.entity.effect.StatusEffects.HERO_OF_THE_VILLAGE,
-                        20 * 60 * 5, // 5分钟
-                        2,
-                        true,
-                        true
-                ));
-
                 player.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(
                         net.minecraft.entity.effect.StatusEffects.GLOWING,
                         20 * 60 * 10, // 10分钟
