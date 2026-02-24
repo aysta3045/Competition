@@ -42,8 +42,6 @@ dependencies {
 	// Fabric API
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	// ftb teams
-	modCompileOnly "dev.ftb.mods:ftb-teams-fabric:2101.1.1"
 
 }
 
